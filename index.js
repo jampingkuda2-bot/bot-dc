@@ -40,7 +40,7 @@ client.lavalink = new LavalinkManager({
   },
   autoSkip: true,
   playerOptions: {
-    defaultSearchPlatform: "ytsearch",
+    defaultSearchPlatform: "scsearch",
     volumeDecrementer: 0.75,
     onDisconnect: { autoReconnect: true, destroyPlayer: false },
     onEmptyQueue: { destroyAfterMs: 60_000 },
