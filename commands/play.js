@@ -6,9 +6,18 @@ const config = require("../config");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("play")
-    .setDescription("Putar lagu dari YouTube/Spotify/SoundCloud (nama atau link)")
+    .setDescription("Putar lagu dari SoundCloud/YouTube (nama atau link)")
     .addStringOption((opt) =>
       opt.setName("lagu").setDescription("Judul lagu atau URL").setRequired(true)
+    )
+    .addStringOption((opt) =>
+      opt
+        .setName("sumber")
+        .setDescription("Sumber pencarian (default: SoundCloud, lebih stabil)")
+        .addChoices(
+          { name: "SoundCloud (disarankan, lebih stabil)", value: "scsearch" },
+          { name: "YouTube", value: "ytsearch" }
+        )
     ),
 
   async execute(interaction, client) {
@@ -19,6 +28,8 @@ module.exports = {
     await interaction.deferReply();
 
     const query = interaction.options.getString("lagu");
+    const isUrl = /^https?:\/\//i.test(query);
+    const source = interaction.options.getString("sumber") || "scsearch";
 
     let player = client.lavalink.getPlayer(interaction.guildId);
     if (!player) {
@@ -36,7 +47,8 @@ module.exports = {
 
     let res;
     try {
-      res = await player.search({ query, source: "ytsearch" }, interaction.user);
+      // Kalau berupa URL langsung, biarkan Lavalink deteksi sumbernya sendiri (tanpa prefix search)
+      res = await player.search({ query, source: isUrl ? undefined : source }, interaction.user);
     } catch (err) {
       console.error(err);
       return interaction.editReply({ embeds: [errorEmbed("Gagal mencari lagu, coba lagi.")] });
