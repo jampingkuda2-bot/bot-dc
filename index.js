@@ -52,11 +52,17 @@ registerLavalinkEvents(client);
 // --- Load slash commands ---
 loadCommands(client);
 
-// --- Load event handlers ---
+// --- Meneruskan raw gateway event ke Lavalink (voice state/server update) ---
+client.on("raw", (d) => {
+  if (client.lavalink) client.lavalink.sendRawData(d);
+});
+
+// --- Load event handlers (kecuali raw.js dan lavalinkEvents.js yang sudah ditangani manual) ---
 const eventsPath = path.join(__dirname, "events");
-for (const file of fs.readdirSync(eventsPath).filter((f) => f.endsWith(".js"))) {
+const skipFiles = ["raw.js", "lavalinkEvents.js"];
+for (const file of fs.readdirSync(eventsPath).filter((f) => f.endsWith(".js") && !skipFiles.includes(f))) {
   const event = require(path.join(eventsPath, file));
-  if (event.name === "lavalinkEvents") continue;
+  if (!event.name || !event.execute) continue;
   if (event.once) {
     client.once(event.name, (...args) => event.execute(...args, client));
   } else {
